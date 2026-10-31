@@ -1,6 +1,6 @@
 // Service worker: permite usar la app sin conexión.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v2'
+const CACHE = 'visor-v3'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
   './viewer-pdf.js', './viewer-book.js', './manifest.webmanifest',
@@ -30,7 +30,8 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return
   e.respondWith((async () => {
     try {
-      const res = await fetch(req)
+      // no-cache: siempre pregunta al servidor si hay versión nueva (si no cambió, responde 304 y es rápido)
+      const res = await fetch(req, { cache: 'no-cache' })
       if (res.ok) {
         const copy = res.clone()
         caches.open(CACHE).then(c => c.put(req, copy))
