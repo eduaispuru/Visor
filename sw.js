@@ -1,7 +1,7 @@
 // Service worker: permite usar la app sin conexión.
 // IMPORTANTE: al cambiar archivos de la app, subir CACHE (visor-vN) para que aparezca el aviso de actualización.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v15'
+const CACHE = 'visor-v16'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
   './viewer-pdf.js', './viewer-book.js', './themes.js', './cover.js', './manifest.webmanifest',
@@ -13,8 +13,9 @@ const CORE = [
   './lib/foliate/fixed-layout.js', './lib/foliate/epub.js', './lib/foliate/mobi.js',
   './lib/foliate/fb2.js', './lib/foliate/comic-book.js', './lib/foliate/search.js',
   './lib/foliate/vendor/zip.js', './lib/foliate/vendor/fflate.js',
-  './lib/fonts/ibm-plex-mono-latin-400-normal.woff2', './lib/fonts/ibm-plex-mono-latin-500-normal.woff2',
-  './lib/fonts/instrument-serif-latin-400-normal.woff2',
+  './lib/fonts/hanken-grotesk-latin-400-normal.woff2', './lib/fonts/hanken-grotesk-latin-500-normal.woff2',
+  './lib/fonts/hanken-grotesk-latin-600-normal.woff2', './lib/fonts/instrument-serif-latin-400-normal.woff2',
+  './lib/fonts/instrument-serif-latin-400-italic.woff2',
 ]
 
 self.addEventListener('install', e => {

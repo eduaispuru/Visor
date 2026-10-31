@@ -325,7 +325,7 @@ function renderRestore() {
   box.hidden = !n
   if (!n) return
   $('#restore-count').textContent = n === 1 ? '1 pestaña' : `${n} pestañas`
-  $('#restore-names').textContent = (prevSession.names || []).join(' · ')
+  $('#restore-names').textContent = (prevSession.names || []).join(', ')
 }
 
 async function restoreLast() {
@@ -351,30 +351,35 @@ async function restoreLast() {
   if (opened.some(d => !d)) message('Algunos archivos no se pudieron reabrir (¿se movieron o borraron?).', 5000)
 }
 
+const NUM = ['cero', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce']
+const words = (n, uno, varios) => `${n < NUM.length ? NUM[n] : n} ${n === 1 ? uno : varios}`
+const stripExt = name => name.replace(/\.[^.]+$/, '')
+const pctText = p => `${Math.round(p * 100)} %`
+
 async function renderRecent() {
   renderRestore()
+  $('#today').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
   const items = await listRecent()
   const box = $('#recent')
   box.replaceChildren()
   $('#recent-title').hidden = !items.length
   $('#empty').hidden = !!items.length
-  const fmt = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
+  const fmt = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long' })
   let reading = 0
   for (const it of items) {
     const prog = getPref('prog:' + it.key, null)
     if (prog != null && prog > 0.01 && prog < 0.99) reading++
-    const ext = (it.name.split('.').pop() || '').toUpperCase()
-    const title = it.name.replace(/\.[^.]+$/, '')
+    const ext = (it.name.split('.').pop() || '').toLowerCase()
     const card = document.createElement('button')
     card.className = 'card'
     card.title = it.name
     card.innerHTML = `
       <div class="cv">${coverSVG(it.name)}</div>
-      <div class="meta"><span>${ext}</span><span>${prog == null ? fmt.format(it.time) : String(Math.round(prog * 100)).padStart(2, '0') + '%'}</span></div>
       <div class="ttl"></div>
-      <div class="pg"><div style="width:${Math.round((prog || 0) * 100)}%"></div></div>
+      <div class="meta"><span>${ext}</span><span>${prog == null ? fmt.format(it.time) : pctText(prog)}</span></div>
+      ${prog == null ? '' : `<div class="pg"><div style="width:${Math.round(prog * 100)}%"></div></div>`}
       <span class="del" title="Quitar de recientes"><svg class="ic"><use href="#i-x"/></svg></span>`
-    card.querySelector('.ttl').textContent = title
+    card.querySelector('.ttl').textContent = stripExt(it.name)
     card.onclick = e => {
       if (e.target.closest('.del')) { removeRecent(it.key).then(renderRecent); return }
       openFromHandle(it.handle)
@@ -382,10 +387,21 @@ async function renderRecent() {
     box.append(card)
   }
   const n = items.length
-  $('#lib-stats').innerHTML = n
-    ? `${n} ${n === 1 ? 'documento' : 'documentos'} · ${reading} en lectura<br>Último: <span></span>`
-    : 'Sin documentos todavía.'
-  if (n) $('#lib-stats span').textContent = items[0].name.replace(/\.[^.]+$/, '')
+  $('#lib-stats').textContent = n
+    ? `${words(n, 'documento', 'documentos')}${reading ? `, ${words(reading, 'a medio leer', 'a medio leer')}` : ''}`
+    : 'tu biblioteca está vacía'
+
+  // "Seguís leyendo": el más reciente que no esté terminado
+  const cont = items.find(it => { const p = getPref('prog:' + it.key, null); return p == null || p < 0.99 })
+  $('#continue').hidden = !cont
+  if (cont) {
+    const p = getPref('prog:' + cont.key, null)
+    $('#continue-title').textContent = stripExt(cont.name)
+    $('#continue-kind').textContent = (cont.name.split('.').pop() || '').toLowerCase() === 'pdf' ? 'documento pdf' : 'libro'
+    $('#continue-pct').textContent = p == null ? '' : pctText(p)
+    $('#continue-bar').style.width = `${Math.round((p || 0) * 100)}%`
+    $('#continue-btn').onclick = () => openFromHandle(cont.handle)
+  }
 }
 
 // ---------- Teclado ----------
@@ -563,6 +579,7 @@ async function restoreSession() {
 // ---------- Inicio ----------
 applyTheme(getPref('theme', DEFAULT_THEME))
 $('#restore-btn').onclick = restoreLast
+$('#drop').onclick = pickFiles
 activate(null)
 ;(async () => {
   prevSession = await getLastSession()
