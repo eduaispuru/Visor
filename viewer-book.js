@@ -1,14 +1,10 @@
 // Lector de libros (EPUB, MOBI, AZW3, FB2, CBZ) basado en foliate-js.
 import './lib/foliate/view.js'
-
-const THEMES = {
-  light: null,
-  sepia: { bg: '#f4ecd8', fg: '#3b2f1e', link: '#8a4b0f' },
-  dark: { bg: '#18181b', fg: '#d4d4d8', link: '#93c5fd' },
-}
+import { THEMES } from './themes.js'
 
 const getCSS = ({ fontSize, theme }) => {
   const t = THEMES[theme]
+  const colored = t && theme !== 'light'
   return `
     @namespace epub "http://www.idpf.org/2007/ops";
     html { font-size: ${fontSize}% !important; }
@@ -24,10 +20,11 @@ const getCSS = ({ fontSize, theme }) => {
     pre { white-space: pre-wrap !important; }
     aside[epub|type~="footnote"], aside[epub|type~="endnote"],
     aside[epub|type~="note"], aside[epub|type~="rearnote"] { display: none; }
-    ${t ? `
-    html, body { background: ${t.bg} !important; color: ${t.fg} !important; }
+    ${colored ? `
+    html, body { background: ${t.page} !important; color: ${t.fg} !important; }
     body *:not(img):not(svg):not(svg *) { color: inherit !important; background-color: transparent !important; }
     a:link, a:visited, a:link *, a:visited * { color: ${t.link} !important; }
+    ${t.invert ? `img { filter: brightness(.85); }` : ''}
     ` : ''}
   `
 }
@@ -69,7 +66,6 @@ export async function openBook(file, { host, lastLocation, style, onRelocate, on
   return {
     title: formatLang(book.metadata?.title),
     outline: mapToc(book.toc),
-    sectionFractions: view.getSectionFractions?.() || [],
     next: () => view.goRight(),
     prev: () => view.goLeft(),
     goToFraction: f => view.goToFraction(f),

@@ -1,8 +1,8 @@
 import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref } from './store.js'
+import { THEMES, DEFAULT_THEME, applyThemeVars } from './themes.js'
 
 const $ = s => document.querySelector(s)
 const BOOK_EXT = ['epub', 'mobi', 'azw', 'azw3', 'fb2', 'fbz', 'cbz']
-const THEMES = ['light', 'sepia', 'dark']
 
 // Cada pestaña: { id, kind: 'pdf'|'book', key, name, title, api, section, tab, outline, state }
 const docs = []
@@ -22,7 +22,9 @@ function message(text, ms = 0) {
 function setTitle(t) { $('#title').textContent = t; document.title = t }
 
 function applyTheme(theme) {
-  document.body.dataset.theme = theme
+  if (!THEMES[theme]) theme = DEFAULT_THEME
+  applyThemeVars(theme)
+  $('#theme-select').value = theme
   setPref('theme', theme)
   for (const d of docs) if (d.kind === 'book') d.api?.setStyle({ theme })
 }
@@ -341,7 +343,8 @@ $('#btn-open').onclick = pickFiles
 $('#tab-add').onclick = pickFiles
 $('#tab-home').onclick = () => activate(null)
 $('#btn-toc').onclick = () => ($('#sidebar').hidden = !$('#sidebar').hidden)
-$('#btn-theme').onclick = () => applyTheme(THEMES[(THEMES.indexOf(document.body.dataset.theme) + 1) % THEMES.length])
+for (const [value, t] of Object.entries(THEMES)) $('#theme-select').add(new Option(t.label, value))
+$('#theme-select').onchange = e => applyTheme(e.target.value)
 $('#file-input').onchange = async e => {
   for (const f of [...e.target.files]) await openFile(f, null)
   e.target.value = ''
@@ -417,7 +420,7 @@ if ('launchQueue' in window) {
 }
 
 // ---------- Inicio ----------
-applyTheme(getPref('theme', 'light'))
+applyTheme(getPref('theme', DEFAULT_THEME))
 activate(null)
 
 if ('serviceWorker' in navigator) {

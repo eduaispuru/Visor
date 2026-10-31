@@ -3,14 +3,6 @@
   --bar: #1e293b; --bar-fg: #f8fafc; --btn: #334155; --accent: #3b82f6;
   --page: #ffffff; --page-fg: #18181b; --border: #d4d4d8;
 }
-body[data-theme="sepia"] {
-  --bg: #e9e0cc; --fg: #3b2f1e; --muted: #7a6a52;
-  --page: #f4ecd8; --page-fg: #3b2f1e; --border: #cbbd9e;
-}
-body[data-theme="dark"] {
-  --bg: #0f0f12; --fg: #e4e4e7; --muted: #a1a1aa;
-  --page: #18181b; --page-fg: #d4d4d8; --border: #3f3f46;
-}
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
@@ -103,8 +95,12 @@ section.doc.inactive { visibility: hidden; pointer-events: none; }
 /* PDF */
 .pdf-container { position: absolute; inset: 0; overflow: auto; background: var(--bg); }
 .pdfViewer .page { box-shadow: 0 1px 4px rgba(0,0,0,.25); }
-body[data-theme="dark"] .pdfViewer .page canvas { filter: invert(.92) hue-rotate(180deg); }
-body[data-theme="sepia"] .pdfViewer .page canvas { filter: sepia(.35) brightness(.97); }
+.pdfViewer .page canvas { filter: var(--pdf-filter, none); }
+.pdfViewer .page::after {
+  content: ""; display: block !important; position: absolute; inset: 0; pointer-events: none; z-index: 10;
+  background: var(--pdf-tint, transparent); mix-blend-mode: multiply;
+}
+#theme-select option { background: #fff; color: #000; }
 
 /* Libro */
 .doc.book { display: flex; flex-direction: column; background: var(--page); }
