@@ -1,7 +1,7 @@
 // Service worker: permite usar la app sin conexión.
 // IMPORTANTE: al cambiar archivos de la app, subir CACHE (visor-vN) para que aparezca el aviso de actualización.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v12'
+const CACHE = 'visor-v13'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
   './viewer-pdf.js', './viewer-book.js', './themes.js', './manifest.webmanifest',
