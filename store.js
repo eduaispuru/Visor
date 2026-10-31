@@ -65,3 +65,12 @@ export async function takeSession() {
     return session || null
   } catch { return null }
 }
+
+// Última sesión (pestañas abiertas), para ofrecer restaurarla al abrir la app
+export async function saveLastSession(session) {
+  try { await tx('readwrite', s => s.put(session, 'last'), KV) } catch (e) { console.warn(e) }
+}
+
+export async function getLastSession() {
+  try { return (await tx('readonly', s => s.get('last'), KV)) || null } catch { return null }
+}

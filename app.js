@@ -1,4 +1,4 @@
-import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession } from './store.js'
+import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession, saveLastSession, getLastSession } from './store.js'
 import { THEMES, DEFAULT_THEME, applyThemeVars } from './themes.js'
 
 const $ = s => document.querySelector(s)
@@ -30,8 +30,27 @@ function applyTheme(theme) {
 }
 
 // ---------- Pestañas ----------
+// ---------- Última sesión ----------
+let canPersist = false   // no guardar hasta haber leído la sesión anterior
+let prevSession = null   // sesión de la vez anterior (para el botón "Restaurar")
+let persistTimer
+function persistSession() {
+  if (!canPersist) return
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    const open = docs.filter(d => d.handle && d.api)
+    saveLastSession({
+      handles: open.map(d => d.handle),
+      names: open.map(d => d.title || d.name),
+      active: open.indexOf(active),
+      time: Date.now(),
+    })
+  }, 300)
+}
+
 function activate(doc) {
   active = doc
+  persistSession()
   for (const d of docs) {
     d.section.classList.toggle('inactive', d !== doc)
     d.tab.classList.toggle('active', d === doc)
@@ -82,6 +101,7 @@ function createTab(doc) {
     const to = docs.indexOf(doc) + (from <= docs.indexOf(doc) ? 1 : 0)
     docs.splice(to, 0, moved)
     $('#tab-list').replaceChildren(...docs.map(d => d.tab))
+    persistSession()
   }
   doc.tab = tab
   doc.setName = n => { name.textContent = n; tab.title = n }
@@ -92,6 +112,7 @@ async function closeDoc(doc) {
   const i = docs.indexOf(doc)
   if (i < 0) return
   docs.splice(i, 1)
+  persistSession()
   doc.flush?.()
   doc.tab.remove()
   doc.section.remove()
@@ -172,6 +193,7 @@ async function openFile(file, handle) {
     doc.outline = doc.api.outline
     doc.setName(doc.title)
     if (active === doc) activate(doc)
+    persistSession()
     if (handle) await addRecent(key, file.name, handle)
   } catch (e) {
     console.error(e)
@@ -294,7 +316,40 @@ async function pickFiles() {
 }
 
 // ---------- Recientes ----------
+function renderRestore() {
+  const box = $('#restore')
+  const n = prevSession?.handles?.length || 0
+  box.hidden = !n
+  if (!n) return
+  $('#restore-count').textContent = n === 1 ? '1 pestaña' : `${n} pestañas`
+  $('#restore-names').textContent = (prevSession.names || []).join(' · ')
+}
+
+async function restoreLast() {
+  const session = prevSession
+  prevSession = null
+  renderRestore()
+  if (!session) return
+  const opened = []
+  for (const h of session.handles) {
+    let doc = null
+    try {
+      // Pedir permiso si hace falta (el clic en "Restaurar" lo habilita)
+      if (h.queryPermission && (await h.queryPermission({ mode: 'read' })) !== 'granted'
+        && (await h.requestPermission({ mode: 'read' })) !== 'granted') { opened.push(null); continue }
+      const file = await h.getFile()
+      await openFile(file, h)
+      doc = docs.find(d => d.key === fileKey(file)) || null
+    } catch (e) { console.warn('No se pudo reabrir', e) }
+    opened.push(doc)
+  }
+  const target = opened[session.active] || opened.find(Boolean)
+  if (target) activate(target)
+  if (opened.some(d => !d)) message('Algunos archivos no se pudieron reabrir (¿se movieron o borraron?).', 5000)
+}
+
 async function renderRecent() {
+  renderRestore()
   const items = await listRecent()
   const ul = $('#recent')
   ul.replaceChildren()
@@ -493,6 +548,13 @@ async function restoreSession() {
 
 // ---------- Inicio ----------
 applyTheme(getPref('theme', DEFAULT_THEME))
+$('#restore-btn').onclick = restoreLast
 activate(null)
-restoreSession()
+;(async () => {
+  prevSession = await getLastSession()
+  canPersist = true
+  await restoreSession() // si venimos de "Actualizar", reabre las pestañas solo
+  if (docs.length) prevSession = null
+  renderRestore()
+})()
 watchUpdates()
