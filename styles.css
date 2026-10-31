@@ -153,3 +153,11 @@ section.doc.inactive { visibility: hidden; pointer-events: none; }
   background: var(--page); color: var(--page-fg); border: 1px solid var(--border);
   padding: 16px 20px; border-radius: 10px; max-width: 90%; text-align: center; z-index: 30;
 }
+
+#update-bar {
+  position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px;
+  background: var(--toolbar); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.18); white-space: nowrap;
+}
+#update-bar .btn.primary { padding: 0 14px; }

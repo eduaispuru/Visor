@@ -1,6 +1,7 @@
 // Service worker: permite usar la app sin conexión.
+// IMPORTANTE: al cambiar archivos de la app, subir CACHE (visor-vN) para que aparezca el aviso de actualización.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v5'
+const CACHE = 'visor-v6'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
   './viewer-pdf.js', './viewer-book.js', './themes.js', './manifest.webmanifest',
@@ -15,7 +16,10 @@ const CORE = [
 ]
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()))
+  // cache: 'reload' saltea la caché HTTP de GitHub (10 minutos) para guardar los archivos nuevos
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()))
 })
 
 self.addEventListener('activate', e => {

@@ -1,4 +1,4 @@
-import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref } from './store.js'
+import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession } from './store.js'
 import { THEMES, DEFAULT_THEME, applyThemeVars } from './themes.js'
 
 const $ = s => document.querySelector(s)
@@ -157,7 +157,7 @@ async function openFile(file, handle) {
   const kind = ext === 'pdf' || (!BOOK_EXT.includes(ext) && await sniffPdf(file)) ? 'pdf' : 'book'
   const section = $(kind === 'pdf' ? '#tpl-pdf' : '#tpl-book').content.firstElementChild.cloneNode(true)
   $('main').insertBefore(section, $('#msg'))
-  const doc = { id: nextId++, kind, key, name: file.name, title: file.name, section, outline: [], state: {} }
+  const doc = { id: nextId++, kind, key, name: file.name, title: file.name, section, outline: [], state: {}, handle }
   docs.push(doc)
   createTab(doc)
   activate(doc)
@@ -424,10 +424,53 @@ if ('launchQueue' in window) {
   })
 }
 
+// ---------- Actualizaciones ----------
+// Busca una versión nueva al abrir la app, al volver a ella y cada 30 minutos.
+// Cuando llega, muestra un aviso; al tocar "Actualizar" recarga y reabre las pestañas.
+function watchUpdates() {
+  if (!('serviceWorker' in navigator)) return
+  const hadController = !!navigator.serviceWorker.controller
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    const check = () => reg.update().catch(() => {})
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check() })
+    setInterval(check, 30 * 60 * 1000)
+  }).catch(e => console.warn('SW', e))
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) $('#update-bar').hidden = false
+  })
+  $('#update-btn').onclick = async () => {
+    const open = docs.filter(d => d.handle)
+    await saveSession({
+      handles: open.map(d => d.handle),
+      active: open.indexOf(active),
+    })
+    location.reload()
+  }
+  $('#update-later').onclick = () => ($('#update-bar').hidden = true)
+}
+
+async function restoreSession() {
+  const session = await takeSession()
+  if (!session?.handles?.length) return
+  const opened = []
+  for (const h of session.handles) {
+    let doc = null
+    try {
+      // Solo si el permiso sigue vigente (no se puede pedir sin un clic)
+      if (!h.queryPermission || (await h.queryPermission({ mode: 'read' })) === 'granted') {
+        const file = await h.getFile()
+        await openFile(file, h)
+        doc = docs.find(d => d.key === fileKey(file)) || null
+      }
+    } catch (e) { console.warn('No se pudo reabrir', e) }
+    opened.push(doc)
+  }
+  const target = opened[session.active]
+  if (target) activate(target)
+}
+
 // ---------- Inicio ----------
 applyTheme(getPref('theme', DEFAULT_THEME))
 activate(null)
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW', e))
-}
+restoreSession()
+watchUpdates()

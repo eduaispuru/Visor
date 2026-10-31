@@ -1,20 +1,24 @@
 // Recientes (con el "handle" del archivo para poder reabrirlo) y preferencias.
-const DB = 'visor', STORE = 'recent'
+const DB = 'visor', STORE = 'recent', KV = 'kv'
 
 function db() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1)
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'key' })
+    const req = indexedDB.open(DB, 2)
+    req.onupgradeneeded = () => {
+      const d = req.result
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'key' })
+      if (!d.objectStoreNames.contains(KV)) d.createObjectStore(KV)
+    }
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
   })
 }
 
-async function tx(mode, fn) {
+async function tx(mode, fn, store = STORE) {
   const d = await db()
   return new Promise((resolve, reject) => {
-    const t = d.transaction(STORE, mode)
-    const out = fn(t.objectStore(STORE))
+    const t = d.transaction(store, mode)
+    const out = fn(t.objectStore(store))
     t.oncomplete = () => resolve(out?.result ?? out)
     t.onerror = () => reject(t.error)
   })
@@ -47,4 +51,17 @@ export function getPref(name, fallback) {
 
 export function setPref(name, value) {
   try { localStorage.setItem('pref:' + name, JSON.stringify(value)) } catch {}
+}
+
+// Pestañas abiertas, para reabrirlas después de actualizar la app
+export async function saveSession(session) {
+  try { await tx('readwrite', s => s.put(session, 'session'), KV) } catch (e) { console.warn(e) }
+}
+
+export async function takeSession() {
+  try {
+    const session = await tx('readonly', s => s.get('session'), KV)
+    await tx('readwrite', s => s.delete('session'), KV)
+    return session || null
+  } catch { return null }
 }
