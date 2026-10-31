@@ -19,7 +19,7 @@ function message(text, ms = 0) {
   if (text && ms) msgTimer = setTimeout(() => (el.hidden = true), ms)
 }
 
-function setTitle(t) { $('#title').textContent = t; document.title = t }
+function setTitle(t) { document.title = t }
 
 function applyTheme(theme) {
   if (!THEMES[theme]) theme = DEFAULT_THEME
@@ -62,7 +62,7 @@ function createTab(doc) {
   const close = document.createElement('button')
   close.className = 'close'
   close.title = 'Cerrar pestaña'
-  close.textContent = '×'
+  close.innerHTML = '<svg class="ic"><use href="#i-x"/></svg>'
   close.onclick = e => { e.stopPropagation(); closeDoc(doc) }
   tab.append(name, close)
   tab.onclick = () => activate(doc)
@@ -236,7 +236,7 @@ async function openBookDoc(doc, file) {
   const { openBook } = await import('./viewer-book.js')
   const sec = doc.section
   const flow = getPref('flow', 'paginated')
-  $('#book-flow').textContent = flow === 'paginated' ? 'Páginas' : 'Scroll'
+  showFlow(flow)
   doc.api = await openBook(file, {
     host: sec.querySelector('.book-host'),
     lastLocation: getPref('pos:' + doc.key, null),
@@ -307,7 +307,7 @@ async function renderRecent() {
     const del = document.createElement('button')
     del.className = 'del'
     del.title = 'Quitar de recientes'
-    del.textContent = '×'
+    del.innerHTML = '<svg class="ic"><use href="#i-x"/></svg>'
     del.onclick = async () => { await removeRecent(it.key); renderRecent() }
     li.append(b, when, del)
     ul.append(li)
@@ -375,6 +375,11 @@ $('#pdf-find').onkeydown = e => {
 }
 
 // Libros (preferencias globales: se aplican a todas las pestañas de libros)
+function showFlow(flow) {
+  const b = $('#book-flow')
+  b.querySelector('use').setAttribute('href', flow === 'paginated' ? '#i-pages' : '#i-scroll')
+  b.title = flow === 'paginated' ? 'Modo páginas (clic para desplazamiento continuo)' : 'Modo desplazamiento (clic para páginas)'
+}
 const books = () => docs.filter(d => d.kind === 'book' && d.api)
 const setFont = d => {
   const size = Math.min(250, Math.max(60, getPref('fontSize', 100) + d))
@@ -386,7 +391,7 @@ $('#book-font-up').onclick = () => setFont(10)
 $('#book-flow').onclick = () => {
   const flow = getPref('flow', 'paginated') === 'paginated' ? 'scrolled' : 'paginated'
   setPref('flow', flow)
-  $('#book-flow').textContent = flow === 'paginated' ? 'Páginas' : 'Scroll'
+  showFlow(flow)
   for (const b of books()) b.api.setStyle({ flow })
 }
 

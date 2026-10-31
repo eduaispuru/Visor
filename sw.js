@@ -1,6 +1,6 @@
 // Service worker: permite usar la app sin conexión.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v4'
+const CACHE = 'visor-v5'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
   './viewer-pdf.js', './viewer-book.js', './themes.js', './manifest.webmanifest',
