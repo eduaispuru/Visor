@@ -13,7 +13,6 @@
 </head>
 <body>
   <header id="bar">
-    <button id="btn-home" class="icon" title="Inicio" hidden>&#8592;</button>
     <button id="btn-toc" class="icon" title="Índice" hidden>&#9776;</button>
     <span id="title">Visor</span>
 
@@ -53,6 +52,12 @@
     <button id="btn-open" class="primary">Abrir</button>
   </header>
 
+  <nav id="tabs">
+    <button id="tab-home" class="tab home" title="Inicio">Inicio</button>
+    <div id="tab-list"></div>
+    <button id="tab-add" title="Abrir archivo en pestaña nueva">+</button>
+  </nav>
+
   <main>
     <aside id="sidebar" hidden>
       <div id="toc-list"></div>
@@ -66,24 +71,25 @@
       <ul id="recent"></ul>
     </section>
 
-    <section id="pdf" hidden>
-      <div id="pdf-container"><div id="pdf-viewer" class="pdfViewer"></div></div>
-    </section>
-
-    <section id="book" hidden>
-      <div id="book-host"></div>
-      <footer id="book-nav">
-        <button id="book-prev" class="icon" title="Anterior">&#8592;</button>
-        <input id="book-progress" type="range" min="0" max="1" step="any" value="0">
-        <span id="book-pct">0%</span>
-        <button id="book-next" class="icon" title="Siguiente">&#8594;</button>
-      </footer>
-    </section>
-
     <div id="msg" hidden></div>
   </main>
 
-  <input id="file-input" type="file" hidden
+  <template id="tpl-pdf">
+    <section class="doc pdf"><div class="pdf-container"><div class="pdfViewer"></div></div></section>
+  </template>
+  <template id="tpl-book">
+    <section class="doc book">
+      <div class="book-host"></div>
+      <footer class="book-nav">
+        <button class="prev" title="Anterior">&#8592;</button>
+        <input class="progress" type="range" min="0" max="1" step="any" value="0">
+        <span class="pct">0%</span>
+        <button class="next" title="Siguiente">&#8594;</button>
+      </footer>
+    </section>
+  </template>
+
+  <input id="file-input" type="file" multiple hidden
     accept=".pdf,.epub,.mobi,.azw,.azw3,.fb2,.fbz,.cbz,application/pdf,application/epub+zip">
   <script type="module" src="app.js"></script>
 </body>

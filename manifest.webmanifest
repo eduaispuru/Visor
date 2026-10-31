@@ -33,5 +33,5 @@
       }
     }
   ],
-  "launch_handler": { "client_mode": "auto" }
+  "launch_handler": { "client_mode": ["focus-existing", "auto"] }
 }

@@ -40,6 +40,34 @@ button, select, input { font: inherit; }
 
 main { flex: 1; position: relative; overflow: hidden; }
 section { position: absolute; inset: 0; }
+section.doc.inactive { visibility: hidden; pointer-events: none; }
+
+/* Pestañas */
+#tabs {
+  display: flex; align-items: stretch; gap: 2px; padding: 4px 6px 0;
+  background: color-mix(in srgb, var(--bar) 85%, #000); overflow-x: auto; scrollbar-width: thin;
+}
+#tab-list { display: flex; gap: 2px; min-width: 0; }
+.tab {
+  display: flex; align-items: center; gap: 6px; max-width: 220px; min-width: 0;
+  padding: 0 6px 0 12px; height: 34px; border: 0; border-radius: 8px 8px 0 0; cursor: pointer;
+  background: transparent; color: #cbd5e1; font: inherit; white-space: nowrap;
+}
+.tab:hover { background: rgba(255,255,255,.08); }
+.tab.active { background: var(--bg); color: var(--fg); }
+.tab .name { overflow: hidden; text-overflow: ellipsis; }
+.tab .close {
+  border: 0; background: none; color: inherit; opacity: .6; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 50%; font-size: 15px; line-height: 1; flex: none;
+}
+.tab .close:hover { opacity: 1; background: rgba(127,127,127,.25); }
+.tab.home { padding: 0 12px; flex: none; }
+.tab.dragging { opacity: .5; }
+#tab-add {
+  flex: none; width: 34px; height: 30px; margin-top: 2px; border: 0; border-radius: 8px;
+  background: transparent; color: #cbd5e1; font-size: 20px; cursor: pointer;
+}
+#tab-add:hover { background: rgba(255,255,255,.08); }
 
 /* Inicio */
 #home { overflow: auto; padding: 24px 16px; max-width: 760px; margin: 0 auto; }
@@ -73,22 +101,22 @@ section { position: absolute; inset: 0; }
 #toc-list .empty { padding: 12px; color: var(--muted); }
 
 /* PDF */
-#pdf-container { position: absolute; inset: 0; overflow: auto; background: var(--bg); }
+.pdf-container { position: absolute; inset: 0; overflow: auto; background: var(--bg); }
 .pdfViewer .page { box-shadow: 0 1px 4px rgba(0,0,0,.25); }
 body[data-theme="dark"] .pdfViewer .page canvas { filter: invert(.92) hue-rotate(180deg); }
 body[data-theme="sepia"] .pdfViewer .page canvas { filter: sepia(.35) brightness(.97); }
 
 /* Libro */
-#book { display: flex; flex-direction: column; background: var(--page); }
-#book-host { flex: 1; position: relative; min-height: 0; }
-#book-host foliate-view { position: absolute; inset: 0; }
-#book-nav {
+.doc.book { display: flex; flex-direction: column; background: var(--page); }
+.book-host { flex: 1; position: relative; min-height: 0; }
+.book-host foliate-view { position: absolute; inset: 0; }
+.book-nav {
   display: flex; align-items: center; gap: 10px; padding: 6px 12px;
   border-top: 1px solid var(--border); color: var(--muted);
 }
-#book-nav button { background: none; border: 1px solid var(--border); color: var(--page-fg); border-radius: 6px; height: 32px; min-width: 40px; cursor: pointer; }
-#book-progress { flex: 1; accent-color: var(--accent); }
-#book-pct { min-width: 44px; text-align: right; font-size: 13px; }
+.book-nav button { background: none; border: 1px solid var(--border); color: var(--page-fg); border-radius: 6px; height: 32px; min-width: 40px; cursor: pointer; }
+.book-nav .progress { flex: 1; accent-color: var(--accent); }
+.book-nav .pct { min-width: 44px; text-align: right; font-size: 13px; }
 
 #msg {
   position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
