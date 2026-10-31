@@ -430,20 +430,33 @@ if ('launchQueue' in window) {
 function watchUpdates() {
   if (!('serviceWorker' in navigator)) return
   const hadController = !!navigator.serviceWorker.controller
+  const showBar = () => { if (hadController) $('#update-bar').hidden = false }
+  // Versión visible en Inicio (sale del nombre de la caché que arma sw.js)
+  const showVersion = () => caches.keys().then(keys => {
+    const v = keys.map(k => k.match(/^visor-v(\d+)$/)).filter(Boolean).map(m => +m[1]).sort((x, y) => y - x)[0]
+    if (v) $('#app-version').textContent = 'Versión ' + v
+  }).catch(() => {})
+  showVersion()
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
-    const check = () => reg.update().catch(() => {})
+    // Si ya se está bajando o esperando una versión nueva, avisar
+    if (reg.installing || reg.waiting) showBar()
+    reg.addEventListener('updatefound', showBar)
+    let last = 0
+    const check = () => {
+      if (Date.now() - last < 60 * 1000) return // como mucho una vez por minuto
+      last = Date.now()
+      reg.update().catch(() => {})
+    }
+    check()
+    // En una ventana de app, cambiar a otra ventana no la "oculta": por eso también al enfocarla
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check() })
-    setInterval(check, 30 * 60 * 1000)
+    window.addEventListener('focus', check)
+    setInterval(check, 5 * 60 * 1000)
   }).catch(e => console.warn('SW', e))
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) $('#update-bar').hidden = false
-  })
+  navigator.serviceWorker.addEventListener('controllerchange', () => { showBar(); showVersion() })
   $('#update-btn').onclick = async () => {
     const open = docs.filter(d => d.handle)
-    await saveSession({
-      handles: open.map(d => d.handle),
-      active: open.indexOf(active),
-    })
+    await saveSession({ handles: open.map(d => d.handle), active: open.indexOf(active) })
     location.reload()
   }
   $('#update-later').onclick = () => ($('#update-bar').hidden = true)
