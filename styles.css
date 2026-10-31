@@ -126,6 +126,14 @@ section.doc.inactive { visibility: hidden; pointer-events: none; }
 .intro { border-right: 1px solid var(--line); padding: 24px 22px; display: flex; flex-direction: column; min-height: 0; }
 .intro h1 { font: 400 64px/0.92 var(--serif); letter-spacing: -.02em; margin: 0 0 16px; }
 #lib-stats { margin: 0 0 18px; color: var(--muted); line-height: 1.6; }
+.intro #restore { border: 1px solid var(--line); margin-bottom: 18px; }
+#restore-btn {
+  display: block; width: 100%; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--line);
+  background: var(--accent); color: var(--accent-fg); text-align: left; cursor: pointer;
+  text-transform: uppercase; letter-spacing: .07em; font: 500 11px var(--mono);
+}
+#restore-btn:hover { filter: brightness(1.07); }
+#restore #restore-names { padding: 8px 12px 10px; margin: 0; }
 .link { border: 0; background: none; padding: 0; cursor: pointer; text-transform: uppercase; letter-spacing: .07em; font-size: 11px; text-align: left; }
 .link:hover { color: var(--accent); }
 #restore-names { color: var(--muted); font-size: 11px; margin-top: 6px; line-height: 1.5; }

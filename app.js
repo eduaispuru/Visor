@@ -542,7 +542,7 @@ function watchUpdates() {
 
 async function restoreSession() {
   const session = await takeSession()
-  if (!session?.handles?.length) return
+  if (!session?.handles?.length) return false
   const opened = []
   for (const h of session.handles) {
     let doc = null
@@ -567,8 +567,9 @@ activate(null)
 ;(async () => {
   prevSession = await getLastSession()
   canPersist = true
-  await restoreSession() // si venimos de "Actualizar", reabre las pestañas solo
-  if (docs.length) prevSession = null
+  // Si venimos de "Actualizar", las pestañas se reabren solas y no hace falta ofrecerlo.
+  // (Abrir un archivo desde la app Archivos NO cancela la opción de restaurar.)
+  if (await restoreSession()) prevSession = null
   renderRestore()
 })()
 watchUpdates()
