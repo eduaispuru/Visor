@@ -17,7 +17,7 @@ const mapOutline = items => (items || []).map(it => ({
   subitems: mapOutline(it.items),
 }))
 
-export async function openPdf(file, { container, startPage, startScale, onPage, onScale, onFind }) {
+export async function openPdf(file, { container, start, onPage, onScale, onFind, onLocation }) {
   await load()
   const eventBus = new V.EventBus()
   const linkService = new V.PDFLinkService({ eventBus, externalLinkTarget: 2 /* BLANK */ })
@@ -37,11 +37,22 @@ export async function openPdf(file, { container, startPage, startScale, onPage, 
   viewer.setDocument(doc)
   linkService.setDocument(doc, null)
 
+  // Volver a donde se dejó: página, zoom y posición exacta dentro de la página
   eventBus.on('pagesinit', () => {
-    viewer.currentScaleValue = startScale || 'page-width'
-    if (startPage && startPage <= doc.numPages) viewer.currentPageNumber = startPage
+    viewer.currentScaleValue = start?.scale || 'page-width'
+    const page = start?.page
+    if (page && page <= doc.numPages) {
+      if (typeof start.top === 'number') {
+        viewer.scrollPageIntoView({
+          pageNumber: page,
+          destArray: [null, { name: 'XYZ' }, start.left ?? 0, start.top, null],
+          allowNegativeOffset: true,
+        })
+      } else viewer.currentPageNumber = page
+    }
     onPage?.(viewer.currentPageNumber, doc.numPages)
   })
+  eventBus.on('updateviewarea', e => onLocation?.(e.location))
   eventBus.on('pagechanging', e => onPage?.(e.pageNumber, doc.numPages))
   eventBus.on('scalechanging', e => onScale?.(e.scale, e.presetValue))
   eventBus.on('updatefindmatchescount', e => onFind?.(e.matchesCount))
@@ -69,6 +80,7 @@ export async function openPdf(file, { container, startPage, startScale, onPage, 
     title,
     get page() { return viewer.currentPageNumber },
     get scaleValue() { return viewer.currentScaleValue },
+    get location() { return viewer._location },
     goTo(n) { viewer.currentPageNumber = Math.min(Math.max(1, n), doc.numPages) },
     next() { viewer.nextPage() },
     prev() { viewer.previousPage() },

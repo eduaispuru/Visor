@@ -92,6 +92,7 @@ async function closeDoc(doc) {
   const i = docs.indexOf(doc)
   if (i < 0) return
   docs.splice(i, 1)
+  doc.flush?.()
   doc.tab.remove()
   doc.section.remove()
   try { await doc.api?.destroy() } catch (e) { console.warn(e) }
@@ -198,17 +199,20 @@ async function openPdfDoc(doc, file) {
   const { openPdf } = await import('./viewer-pdf.js')
   const saved = getPref('pos:' + doc.key, null)
   const s = doc.state
-  let saveTimer
-  const save = () => {
-    clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => {
-      if (doc.api) setPref('pos:' + doc.key, { page: doc.api.page, scale: doc.api.scaleValue })
-    }, 400)
+  // Guarda página, zoom y posición dentro de la página (con una pequeña demora para no escribir en cada scroll)
+  let saveTimer, ready = false
+  const write = () => {
+    clearTimeout(saveTimer); saveTimer = null
+    const loc = doc.api?.location
+    if (!ready || !loc) return
+    setPref('pos:' + doc.key, { page: loc.pageNumber, top: loc.top, left: loc.left, scale: doc.api.scaleValue })
   }
+  const save = () => { clearTimeout(saveTimer); saveTimer = setTimeout(write, 500) }
+  doc.flush = () => { if (saveTimer) write() }
   doc.api = await openPdf(file, {
     container: doc.section.querySelector('.pdf-container'),
-    startPage: saved?.page,
-    startScale: saved?.scale,
+    start: saved,
+    onLocation: save,
     onPage(page, total) {
       s.page = page; s.total = total
       if (active === doc) refreshPdfTools(doc)
@@ -229,6 +233,7 @@ async function openPdfDoc(doc, file) {
       if (active === doc) $('#pdf-find-count').textContent = s.findText
     },
   })
+  setTimeout(() => { ready = true }, 300)
 }
 
 // ----- Libros -----
@@ -350,6 +355,10 @@ $('#file-input').onchange = async e => {
   e.target.value = ''
 }
 document.addEventListener('keydown', handleKey)
+// Guardar posiciones pendientes al minimizar o cerrar la app
+const flushAll = () => docs.forEach(d => d.flush?.())
+window.addEventListener('pagehide', flushAll)
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushAll() })
 
 // PDF (barra superior, actúa sobre la pestaña activa)
 const pdf = () => (active?.kind === 'pdf' ? active.api : null)
