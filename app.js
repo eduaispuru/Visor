@@ -1,5 +1,6 @@
 import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession, saveLastSession, getLastSession } from './store.js'
 import { THEMES, DEFAULT_THEME, applyThemeVars } from './themes.js'
+import { coverSVG } from './cover.js'
 
 const $ = s => document.querySelector(s)
 const BOOK_EXT = ['epub', 'mobi', 'azw', 'azw3', 'fb2', 'fbz', 'cbz']
@@ -237,6 +238,7 @@ async function openPdfDoc(doc, file) {
     onLocation: save,
     onPage(page, total) {
       s.page = page; s.total = total
+      setPref('prog:' + doc.key, total > 1 ? (page - 1) / (total - 1) : 1)
       if (active === doc) refreshPdfTools(doc)
       save()
     },
@@ -273,6 +275,7 @@ async function openBookDoc(doc, file) {
       sec.querySelector('.progress').value = d.fraction || 0
       sec.querySelector('.pct').textContent = Math.round((d.fraction || 0) * 100) + '%'
       if (d.cfi) setPref('pos:' + doc.key, d.cfi)
+      if (d.fraction != null) setPref('prog:' + doc.key, d.fraction)
       const label = d.tocItem?.label?.trim()
       if (label) { doc.state.tocLabel = label; if (active === doc) markToc(label) }
     },
@@ -351,27 +354,38 @@ async function restoreLast() {
 async function renderRecent() {
   renderRestore()
   const items = await listRecent()
-  const ul = $('#recent')
-  ul.replaceChildren()
+  const box = $('#recent')
+  box.replaceChildren()
   $('#recent-title').hidden = !items.length
-  const fmt = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
+  $('#empty').hidden = !!items.length
+  const fmt = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
+  let reading = 0
   for (const it of items) {
-    const li = document.createElement('li')
-    const b = document.createElement('button')
-    b.className = 'open'
-    b.textContent = it.name
-    b.onclick = () => openFromHandle(it.handle)
-    const when = document.createElement('span')
-    when.className = 'when'
-    when.textContent = fmt.format(it.time)
-    const del = document.createElement('button')
-    del.className = 'del'
-    del.title = 'Quitar de recientes'
-    del.innerHTML = '<svg class="ic"><use href="#i-x"/></svg>'
-    del.onclick = async () => { await removeRecent(it.key); renderRecent() }
-    li.append(b, when, del)
-    ul.append(li)
+    const prog = getPref('prog:' + it.key, null)
+    if (prog != null && prog > 0.01 && prog < 0.99) reading++
+    const ext = (it.name.split('.').pop() || '').toUpperCase()
+    const title = it.name.replace(/\.[^.]+$/, '')
+    const card = document.createElement('button')
+    card.className = 'card'
+    card.title = it.name
+    card.innerHTML = `
+      <div class="cv">${coverSVG(it.name)}</div>
+      <div class="meta"><span>${ext}</span><span>${prog == null ? fmt.format(it.time) : String(Math.round(prog * 100)).padStart(2, '0') + '%'}</span></div>
+      <div class="ttl"></div>
+      <div class="pg"><div style="width:${Math.round((prog || 0) * 100)}%"></div></div>
+      <span class="del" title="Quitar de recientes"><svg class="ic"><use href="#i-x"/></svg></span>`
+    card.querySelector('.ttl').textContent = title
+    card.onclick = e => {
+      if (e.target.closest('.del')) { removeRecent(it.key).then(renderRecent); return }
+      openFromHandle(it.handle)
+    }
+    box.append(card)
   }
+  const n = items.length
+  $('#lib-stats').innerHTML = n
+    ? `${n} ${n === 1 ? 'documento' : 'documentos'} · ${reading} en lectura<br>Último: <span></span>`
+    : 'Sin documentos todavía.'
+  if (n) $('#lib-stats span').textContent = items[0].name.replace(/\.[^.]+$/, '')
 }
 
 // ---------- Teclado ----------

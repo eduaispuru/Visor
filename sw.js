@@ -1,10 +1,10 @@
 // Service worker: permite usar la app sin conexión.
 // IMPORTANTE: al cambiar archivos de la app, subir CACHE (visor-vN) para que aparezca el aviso de actualización.
 // Estrategia: red primero (siempre la versión más nueva), caché si no hay conexión.
-const CACHE = 'visor-v13'
+const CACHE = 'visor-v14'
 const CORE = [
   './', './index.html', './styles.css', './app.js', './store.js',
-  './viewer-pdf.js', './viewer-book.js', './themes.js', './manifest.webmanifest',
+  './viewer-pdf.js', './viewer-book.js', './themes.js', './cover.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png',
   './lib/pdfjs/build/pdf.min.mjs', './lib/pdfjs/build/pdf.worker.min.mjs',
   './lib/pdfjs/web/pdf_viewer.mjs', './lib/pdfjs/web/pdf_viewer.css',
@@ -13,6 +13,8 @@ const CORE = [
   './lib/foliate/fixed-layout.js', './lib/foliate/epub.js', './lib/foliate/mobi.js',
   './lib/foliate/fb2.js', './lib/foliate/comic-book.js', './lib/foliate/search.js',
   './lib/foliate/vendor/zip.js', './lib/foliate/vendor/fflate.js',
+  './lib/fonts/ibm-plex-mono-latin-400-normal.woff2', './lib/fonts/ibm-plex-mono-latin-500-normal.woff2',
+  './lib/fonts/instrument-serif-latin-400-normal.woff2',
 ]
 
 self.addEventListener('install', e => {

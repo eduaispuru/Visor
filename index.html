@@ -96,20 +96,24 @@
       <div id="toc-list"></div>
     </aside>
     <section id="home">
-      <div id="drop">
-        <p class="big">Arrastrá un archivo acá o tocá <strong>Abrir</strong></p>
-        <p class="formats">PDF · EPUB · MOBI · AZW3 · FB2 · CBZ</p>
-      </div>
-      <div id="restore" hidden>
-        <div class="restore-text">
-          <strong>Restaurar la sesión anterior</strong> <span id="restore-count"></span>
+      <aside class="intro">
+        <h1>Biblio&shy;teca</h1>
+        <p id="lib-stats"></p>
+        <div id="restore" hidden>
+          <button id="restore-btn" class="link">[ Restaurar sesión — <span id="restore-count"></span> ]</button>
           <div id="restore-names"></div>
         </div>
-        <button id="restore-btn" class="btn primary">Restaurar</button>
+        <div id="drop">
+          <span>Soltá un archivo acá</span>
+          <small>PDF · EPUB · MOBI · AZW3 · FB2 · CBZ</small>
+        </div>
+        <p id="app-version"></p>
+      </aside>
+      <div class="shelf">
+        <div id="recent-title" class="label" hidden>Recientes</div>
+        <div id="recent"></div>
+        <div id="empty" class="label" hidden>Todavía no abriste ningún archivo. Tocá ABRIR o soltá uno a la izquierda.</div>
       </div>
-      <h2 id="recent-title" hidden>Recientes</h2>
-      <ul id="recent"></ul>
-      <p id="app-version"></p>
     </section>
 
     <div id="msg" hidden></div>
