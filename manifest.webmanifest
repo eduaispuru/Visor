@@ -1,0 +1,37 @@
+{
+  "name": "Visor de documentos y libros",
+  "short_name": "Visor",
+  "description": "Visor de PDF, EPUB, MOBI, AZW3, FB2 y CBZ",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#1e293b",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "name": "Documento PDF",
+      "accept": { "application/pdf": [".pdf"] }
+    },
+    {
+      "action": "./",
+      "name": "Libro electrónico",
+      "accept": {
+        "application/epub+zip": [".epub"],
+        "application/x-mobipocket-ebook": [".mobi", ".azw"],
+        "application/vnd.amazon.mobi8-ebook": [".azw3"],
+        "application/x-fictionbook+xml": [".fb2"],
+        "application/x-zip-compressed-fb2": [".fbz"],
+        "application/vnd.comicbook+zip": [".cbz"]
+      }
+    }
+  ],
+  "launch_handler": { "client_mode": "auto" }
+}

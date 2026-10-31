@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' blob: data:; object-src 'none'; base-uri 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visor</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="lib/pdfjs/web/pdf_viewer.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header id="bar">
+    <button id="btn-home" class="icon" title="Inicio" hidden>&#8592;</button>
+    <button id="btn-toc" class="icon" title="Índice" hidden>&#9776;</button>
+    <span id="title">Visor</span>
+
+    <div id="tools-pdf" class="tools" hidden>
+      <button id="pdf-prev" class="icon" title="Página anterior">&#8593;</button>
+      <input id="pdf-page" type="number" min="1" value="1" title="Página">
+      <span id="pdf-total">/ 0</span>
+      <button id="pdf-next" class="icon" title="Página siguiente">&#8595;</button>
+      <span class="sep"></span>
+      <button id="pdf-zoom-out" class="icon" title="Alejar">&minus;</button>
+      <select id="pdf-zoom" title="Zoom">
+        <option value="page-width">Ancho</option>
+        <option value="page-fit">Página</option>
+        <option value="auto">Auto</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+        <option value="3">300%</option>
+        <option value="custom" hidden></option>
+      </select>
+      <button id="pdf-zoom-in" class="icon" title="Acercar">+</button>
+      <span class="sep"></span>
+      <input id="pdf-find" type="search" placeholder="Buscar…" title="Enter: siguiente · Shift+Enter: anterior">
+      <span id="pdf-find-count"></span>
+    </div>
+
+    <div id="tools-book" class="tools" hidden>
+      <button id="book-font-down" class="icon" title="Letra más chica">A&minus;</button>
+      <button id="book-font-up" class="icon" title="Letra más grande">A+</button>
+      <button id="book-flow" title="Cambiar entre páginas y desplazamiento">Páginas</button>
+    </div>
+
+    <button id="btn-theme" title="Tema: claro / sepia / oscuro">Tema</button>
+    <button id="btn-open" class="primary">Abrir</button>
+  </header>
+
+  <main>
+    <aside id="sidebar" hidden>
+      <div id="toc-list"></div>
+    </aside>
+    <section id="home">
+      <div id="drop">
+        <p class="big">Arrastrá un archivo acá o tocá <strong>Abrir</strong></p>
+        <p class="formats">PDF · EPUB · MOBI · AZW3 · FB2 · CBZ</p>
+      </div>
+      <h2 id="recent-title" hidden>Recientes</h2>
+      <ul id="recent"></ul>
+    </section>
+
+    <section id="pdf" hidden>
+      <div id="pdf-container"><div id="pdf-viewer" class="pdfViewer"></div></div>
+    </section>
+
+    <section id="book" hidden>
+      <div id="book-host"></div>
+      <footer id="book-nav">
+        <button id="book-prev" class="icon" title="Anterior">&#8592;</button>
+        <input id="book-progress" type="range" min="0" max="1" step="any" value="0">
+        <span id="book-pct">0%</span>
+        <button id="book-next" class="icon" title="Siguiente">&#8594;</button>
+      </footer>
+    </section>
+
+    <div id="msg" hidden></div>
+  </main>
+
+  <input id="file-input" type="file" hidden
+    accept=".pdf,.epub,.mobi,.azw,.azw3,.fb2,.fbz,.cbz,application/pdf,application/epub+zip">
+  <script type="module" src="app.js"></script>
+</body>
+</html>

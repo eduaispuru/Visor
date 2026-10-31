@@ -1,0 +1,87 @@
+// Lector de libros (EPUB, MOBI, AZW3, FB2, CBZ) basado en foliate-js.
+import './lib/foliate/view.js'
+
+const THEMES = {
+  light: null,
+  sepia: { bg: '#f4ecd8', fg: '#3b2f1e', link: '#8a4b0f' },
+  dark: { bg: '#18181b', fg: '#d4d4d8', link: '#93c5fd' },
+}
+
+const getCSS = ({ fontSize, theme }) => {
+  const t = THEMES[theme]
+  return `
+    @namespace epub "http://www.idpf.org/2007/ops";
+    html { font-size: ${fontSize}% !important; }
+    p, li, blockquote, dd {
+      line-height: 1.5;
+      text-align: justify;
+      hyphens: auto;
+      widows: 2;
+    }
+    [align="left"] { text-align: left; }
+    [align="right"] { text-align: right; }
+    [align="center"] { text-align: center; }
+    pre { white-space: pre-wrap !important; }
+    aside[epub|type~="footnote"], aside[epub|type~="endnote"],
+    aside[epub|type~="note"], aside[epub|type~="rearnote"] { display: none; }
+    ${t ? `
+    html, body { background: ${t.bg} !important; color: ${t.fg} !important; }
+    body *:not(img):not(svg):not(svg *) { color: inherit !important; background-color: transparent !important; }
+    a:link, a:visited, a:link *, a:visited * { color: ${t.link} !important; }
+    ` : ''}
+  `
+}
+
+const formatLang = x => !x ? '' : typeof x === 'string' ? x : x[Object.keys(x)[0]]
+
+export async function openBook(file, { host, lastLocation, style, onRelocate, onKey }) {
+  const view = document.createElement('foliate-view')
+  host.append(view)
+  await view.open(file)
+  const { book } = view
+
+  // Si falla un recurso interno, que no rompa todo el libro
+  book.transformTarget?.addEventListener('data', ({ detail }) => {
+    detail.data = Promise.resolve(detail.data).catch(e => {
+      console.error(`No se pudo cargar ${detail.name}`, e)
+      return ''
+    })
+  })
+
+  view.addEventListener('relocate', e => onRelocate?.(e.detail))
+  view.addEventListener('load', e => e.detail.doc.addEventListener('keydown', onKey))
+
+  let current = { ...style }
+  view.renderer.setStyles?.(getCSS(current))
+  view.renderer.setAttribute('flow', current.flow || 'paginated')
+
+  try {
+    await view.init({ lastLocation })
+  } catch (e) {
+    console.warn('No se pudo restaurar la posición', e)
+    await view.init({})
+  }
+
+  const mapToc = items => (items || []).map(it => ({
+    label: (it.label || '').trim(), target: it.href, subitems: mapToc(it.subitems),
+  }))
+
+  return {
+    title: formatLang(book.metadata?.title),
+    outline: mapToc(book.toc),
+    sectionFractions: view.getSectionFractions?.() || [],
+    next: () => view.goRight(),
+    prev: () => view.goLeft(),
+    goToFraction: f => view.goToFraction(f),
+    goToOutline: item => item.target && view.goTo(item.target).catch(console.error),
+    setStyle(patch) {
+      current = { ...current, ...patch }
+      view.renderer.setStyles?.(getCSS(current))
+      if (patch.flow) view.renderer.setAttribute('flow', patch.flow)
+    },
+    destroy() {
+      view.close?.()
+      view.remove()
+    },
+  }
+}
