@@ -158,11 +158,17 @@ section.doc.inactive { visibility: hidden; pointer-events: none; }
 .seccion-head h2 { font: 400 30px/32px var(--font-display); margin: 0; }
 #recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-4) var(--space-2); }
 .card { align-self: start; position: relative; display: block; text-align: left; border: 0; padding: 0; background: none; cursor: pointer; color: var(--tinta); }
-.card .cv { aspect-ratio: 200 / 260; overflow: hidden; transition: transform .15s, box-shadow .15s; }
-.card .cv svg { width: 100%; height: 100%; display: block; }
+.card .cv { aspect-ratio: 200 / 260; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
 .card:hover .cv { transform: translateY(-3px); box-shadow: var(--sombra-papel); }
-.card .ttl { font: 400 20px/22px var(--font-display); margin-top: 10px; word-break: break-word; }
-.card .meta { display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+.cv-img { flex: 1 1 50%; min-height: 0; overflow: hidden; background: var(--papel-hondo); }
+.cv-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.cv-vacio {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  background-color: var(--papel-hondo); background-image: radial-gradient(var(--linea) 1px, transparent 1.2px); background-size: 12px 12px;
+}
+.cv-titulo { flex: 1 1 50%; min-height: 0; padding: 10px 12px; display: flex; align-items: flex-end; font-family: var(--font-display); line-height: 1.05; letter-spacing: -0.01em; }
+.cv-titulo span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; word-break: break-word; }
+.card .meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
 .card .pg { height: 3px; background: var(--linea); margin-top: 6px; }
 .card .pg div { height: 100%; background: var(--bermellon); }
 .card .del {

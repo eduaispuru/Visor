@@ -17,6 +17,29 @@ const mapOutline = items => (items || []).map(it => ({
   subitems: mapOutline(it.items),
 }))
 
+// Miniatura de la primera página sin abrir el visor (para la biblioteca)
+export async function pdfThumb(file, width = 300) {
+  await load()
+  const task = lib.getDocument({
+    data: new Uint8Array(await file.arrayBuffer()),
+    cMapUrl: BASE + 'cmaps/', cMapPacked: true,
+    standardFontDataUrl: BASE + 'standard_fonts/', wasmUrl: BASE + 'wasm/', iccUrl: BASE + 'iccs/',
+  })
+  try {
+    const doc = await task.promise
+    const page = await doc.getPage(1)
+    const base = page.getViewport({ scale: 1 })
+    const viewport = page.getViewport({ scale: width / base.width })
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(viewport.width)
+    canvas.height = Math.round(viewport.height)
+    await page.render({ canvas, viewport }).promise
+    return await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.82))
+  } finally {
+    task.destroy()
+  }
+}
+
 export async function openPdf(file, { container, start, onPage, onScale, onFind, onLocation }) {
   await load()
   const eventBus = new V.EventBus()
@@ -81,6 +104,17 @@ export async function openPdf(file, { container, start, onPage, onScale, onFind,
     get page() { return viewer.currentPageNumber },
     get scaleValue() { return viewer.currentScaleValue },
     get location() { return viewer._location },
+    // Miniatura de la primera página (para la biblioteca)
+    async thumbnail(width = 300) {
+      const page = await doc.getPage(1)
+      const base = page.getViewport({ scale: 1 })
+      const viewport = page.getViewport({ scale: width / base.width })
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(viewport.width)
+      canvas.height = Math.round(viewport.height)
+      await page.render({ canvas, viewport }).promise
+      return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.82))
+    },
     goTo(n) { viewer.currentPageNumber = Math.min(Math.max(1, n), doc.numPages) },
     next() { viewer.nextPage() },
     prev() { viewer.previousPage() },

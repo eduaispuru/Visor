@@ -19,7 +19,7 @@ async function tx(mode, fn, store = STORE) {
   return new Promise((resolve, reject) => {
     const t = d.transaction(store, mode)
     const out = fn(t.objectStore(store))
-    t.oncomplete = () => resolve(out?.result ?? out)
+    t.oncomplete = () => resolve(out instanceof IDBRequest ? out.result : out)
     t.onerror = () => reject(t.error)
   })
 }
@@ -73,4 +73,17 @@ export async function saveLastSession(session) {
 
 export async function getLastSession() {
   try { return (await tx('readonly', s => s.get('last'), KV)) || null } catch { return null }
+}
+
+// Miniaturas (primera página o tapa) para la biblioteca
+export async function saveThumb(key, blob) {
+  try { await tx('readwrite', s => s.put(blob, 'thumb:' + key), KV) } catch (e) { console.warn(e) }
+}
+
+export async function getThumb(key) {
+  try { return (await tx('readonly', s => s.get('thumb:' + key), KV)) || null } catch { return null }
+}
+
+export async function removeThumb(key) {
+  try { await tx('readwrite', s => s.delete('thumb:' + key), KV) } catch {}
 }

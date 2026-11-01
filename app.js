@@ -1,6 +1,6 @@
-import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession, saveLastSession, getLastSession } from './store.js'
+import { fileKey, addRecent, listRecent, removeRecent, getPref, setPref, saveSession, takeSession, saveLastSession, getLastSession, saveThumb, getThumb, removeThumb } from './store.js'
 import { THEMES, DEFAULT_THEME, applyThemeVars } from './themes.js'
-import { coverSVG } from './cover.js'
+import { titleInk } from './cover.js'
 
 const $ = s => document.querySelector(s)
 const BOOK_EXT = ['epub', 'mobi', 'azw', 'azw3', 'fb2', 'fbz', 'cbz']
@@ -196,11 +196,21 @@ async function openFile(file, handle) {
     if (active === doc) activate(doc)
     persistSession()
     if (handle) await addRecent(key, file.name, handle)
+    ensureThumb(doc)
   } catch (e) {
     console.error(e)
     message(errorText(e, file), 6000)
     await closeDoc(doc)
   }
+}
+
+// Guarda la miniatura del archivo la primera vez que se abre
+async function ensureThumb(doc) {
+  try {
+    if (!doc.api?.thumbnail || await getThumb(doc.key)) return
+    const blob = await doc.api.thumbnail(300)
+    if (blob) await saveThumb(doc.key, blob)
+  } catch (e) { console.warn('Sin miniatura', e) }
 }
 
 // ----- PDF -----
@@ -356,6 +366,29 @@ const words = (n, uno, varios) => `${n < NUM.length ? NUM[n] : n} ${n === 1 ? un
 const stripExt = name => name.replace(/\.[^.]+$/, '')
 const pctText = p => `${Math.round(p * 100)} %`
 
+let thumbURLs = []
+const thumbTried = new Set()
+// Genera en segundo plano las miniaturas que faltan, solo si Chrome conserva el permiso de lectura
+async function fillMissingThumbs(items, thumbs) {
+  let made = false
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i]
+    if (thumbs[i] || thumbTried.has(it.key) || !it.handle?.queryPermission) continue
+    thumbTried.add(it.key)
+    try {
+      if ((await it.handle.queryPermission({ mode: 'read' })) !== 'granted') continue
+      const file = await it.handle.getFile()
+      if (fileKey(file) !== it.key) continue
+      const isPdf = file.name.toLowerCase().endsWith('.pdf')
+      const blob = isPdf
+        ? await (await import('./viewer-pdf.js')).pdfThumb(file)
+        : await (await import('./viewer-book.js')).bookThumb(file)
+      if (blob) { await saveThumb(it.key, blob); made = true }
+    } catch (e) { console.warn('Sin miniatura para', it.name, e) }
+  }
+  if (made && !active) renderRecent()
+}
+
 async function renderRecent() {
   renderRestore()
   $('#today').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
@@ -366,26 +399,43 @@ async function renderRecent() {
   $('#empty').hidden = !!items.length
   const fmt = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long' })
   let reading = 0
-  for (const it of items) {
+  for (const u of thumbURLs) URL.revokeObjectURL(u)
+  thumbURLs = []
+  const thumbs = await Promise.all(items.map(it => getThumb(it.key)))
+  const usedInks = []
+  items.forEach((it, i) => {
     const prog = getPref('prog:' + it.key, null)
     if (prog != null && prog > 0.01 && prog < 0.99) reading++
     const ext = (it.name.split('.').pop() || '').toLowerCase()
+    const title = stripExt(it.name)
+    const ink = titleInk(it.name, usedInks.slice(-2))
+    usedInks.push(ink.bg)
+    const size = title.length <= 18 ? 26 : title.length <= 36 ? 21 : 17
+    let img = `<div class="cv-vacio"><span class="rotulo">${ext}</span></div>`
+    if (thumbs[i]) {
+      const url = URL.createObjectURL(thumbs[i])
+      thumbURLs.push(url)
+      img = `<img src="${url}" alt="">`
+    }
     const card = document.createElement('button')
     card.className = 'card'
     card.title = it.name
     card.innerHTML = `
-      <div class="cv">${coverSVG(it.name)}</div>
-      <div class="ttl"></div>
+      <div class="cv">
+        <div class="cv-img">${img}</div>
+        <div class="cv-titulo" style="background:${ink.bg};color:${ink.fg};font-size:${size}px"><span></span></div>
+      </div>
       <div class="meta"><span>${ext}</span><span>${prog == null ? fmt.format(it.time) : pctText(prog)}</span></div>
       ${prog == null ? '' : `<div class="pg"><div style="width:${Math.round(prog * 100)}%"></div></div>`}
       <span class="del" title="Quitar de recientes"><svg class="ic"><use href="#i-x"/></svg></span>`
-    card.querySelector('.ttl').textContent = stripExt(it.name)
+    card.querySelector('.cv-titulo span').textContent = title
     card.onclick = e => {
-      if (e.target.closest('.del')) { removeRecent(it.key).then(renderRecent); return }
+      if (e.target.closest('.del')) { removeRecent(it.key).then(() => removeThumb(it.key)).then(renderRecent); return }
       openFromHandle(it.handle)
     }
     box.append(card)
-  }
+  })
+  fillMissingThumbs(items, thumbs)
   const n = items.length
   $('#lib-stats').textContent = n
     ? `${words(n, 'documento', 'documentos')}${reading ? `, ${words(reading, 'a medio leer', 'a medio leer')}` : ''}`

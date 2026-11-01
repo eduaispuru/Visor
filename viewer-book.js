@@ -1,5 +1,5 @@
 // Lector de libros (EPUB, MOBI, AZW3, FB2, CBZ) basado en foliate-js.
-import './lib/foliate/view.js'
+import { makeBook } from './lib/foliate/view.js'
 import { THEMES } from './themes.js'
 
 const getCSS = ({ fontSize, theme }) => {
@@ -27,6 +27,24 @@ const getCSS = ({ fontSize, theme }) => {
     ${t.invert ? `img { filter: brightness(.85); }` : ''}
     ` : ''}
   `
+}
+
+async function coverToJpeg(blob, width) {
+  if (!blob) return null
+  const bmp = await createImageBitmap(blob)
+  const scale = Math.min(1, width / bmp.width)
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bmp.width * scale)
+  canvas.height = Math.round(bmp.height * scale)
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height)
+  return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.82))
+}
+
+// Tapa del libro sin abrir el lector (para la biblioteca)
+export async function bookThumb(file, width = 300) {
+  const book = await makeBook(file)
+  try { return await coverToJpeg(await book.getCover?.(), width) }
+  finally { book.destroy?.() }
 }
 
 const formatLang = x => !x ? '' : typeof x === 'string' ? x : x[Object.keys(x)[0]]
@@ -69,6 +87,8 @@ export async function openBook(file, { host, lastLocation, style, onRelocate, on
     next: () => view.goRight(),
     prev: () => view.goLeft(),
     goToFraction: f => view.goToFraction(f),
+    // Miniatura de la tapa (para la biblioteca)
+    async thumbnail(width = 300) { return coverToJpeg(await book.getCover?.(), width) },
     goToOutline: item => item.target && view.goTo(item.target).catch(console.error),
     setStyle(patch) {
       current = { ...current, ...patch }
