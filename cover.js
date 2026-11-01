@@ -2,7 +2,7 @@
 // (siempre la misma para el mismo nombre). Formas grandes y planas que se cortan en el borde,
 // trazo de tinta de 1,5 px y trama de imprenta sobre los bloques grandes de cobalto o bermellón.
 const C = {
-  papel: '#f2ebdc', papelHondo: '#e6dcc6', tinta: '#1c1915',
+  papel: '#f4f4f2', papelHondo: '#e6e6e2', tinta: '#1c1915',
   bermellon: '#e2562f', bermellonClaro: '#f6cdb9', cobalto: '#1f4fa3', cobaltoClaro: '#c5d4ee',
   mostaza: '#e3c13b', oliva: '#5f6b3a', rosa: '#efa49b',
 }
@@ -83,7 +83,7 @@ const MOTIFS = [
     for (let x = 0; x <= W; x += 24) g += `M${x} 0V${H}`
     for (let y = 0; y <= H; y += 24) g += `M0 ${y}H${W}`
     return `<rect width="${W}" height="${H}" fill="${C.papelHondo}"/>
-      <path d="${g}" stroke="#cfc2a6" stroke-width="1"/>
+      <path d="${g}" stroke="#d2d2cd" stroke-width="1"/>
       <rect x="0" y="${150 + r() * 30}" width="${W}" height="${H}" fill="${C.cobalto}"/>
       <circle cx="${48 + Math.floor(r() * 5) * 24}" cy="${72 + Math.floor(r() * 3) * 24}" r="9" fill="${C.bermellon}"/>`
   },

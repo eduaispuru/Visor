@@ -5,13 +5,13 @@ const PAPEL_ACC = { accent: '#e2562f', accentText: '#a5341a', accentSoft: '#f6cd
 const NOCHE_ACC = { accent: '#ef6a43', accentText: '#f08a66', accentSoft: '#4a2418', onAccent: '#1c1915', cobalto: '#6f95e0' }
 
 export const THEMES = {
-  cream: { label: 'Papel', bg: '#f2ebdc', deep: '#e6dcc6', page: '#f2ebdc', fg: '#1c1915', muted: '#5e564a', line: '#cfc2a6', link: '#a5341a', tint: '#f4ecdc', ...PAPEL_ACC },
-  light: { label: 'Blanco', bg: '#f6f2ea', deep: '#ebe4d6', page: '#ffffff', fg: '#1c1915', muted: '#5e564a', line: '#d6ccb8', link: null, ...PAPEL_ACC },
+  cream: { label: 'Gris claro', bg: '#f3f3f1', deep: '#e6e6e2', page: '#f6f6f4', fg: '#1c1b19', muted: '#5c5b57', line: '#d2d2cd', link: '#a5341a', tint: '#f7f7f5', ...PAPEL_ACC },
+  light: { label: 'Blanco', bg: '#f7f7f6', deep: '#ebebe8', page: '#ffffff', fg: '#1c1b19', muted: '#5c5b57', line: '#d8d8d3', link: null, ...PAPEL_ACC },
   sepia: { label: 'Sepia', bg: '#ece0c5', deep: '#e0d1b0', page: '#f1e5c9', fg: '#2a2016', muted: '#64553f', line: '#cbb994', link: '#8a4b0f', tint: '#f1e5c9', ...PAPEL_ACC },
   green: { label: 'Verde', bg: '#dfe8d6', deep: '#d0dcc4', page: '#e4eedc', fg: '#18241a', muted: '#4f5e4b', line: '#b8c9ab', link: '#25603a', tint: '#e4eedc', ...PAPEL_ACC },
-  gray: { label: 'Gris', bg: '#34322e', deep: '#2a2825', page: '#45423d', fg: '#efe6d4', muted: '#b3a995', line: '#55504a', link: '#f08a66', invert: 0.78, ...NOCHE_ACC },
-  dark: { label: 'Noche', bg: '#17140f', deep: '#241f18', page: '#1d1913', fg: '#efe6d4', muted: '#a99f8c', line: '#3b342a', link: '#f08a66', invert: 0.9, ...NOCHE_ACC },
-  black: { label: 'Negro', bg: '#000000', deep: '#14120e', page: '#000000', fg: '#d9d0bf', muted: '#9a917f', line: '#2e2a24', link: '#f08a66', invert: 1, ...NOCHE_ACC },
+  gray: { label: 'Grafito', bg: '#323232', deep: '#282828', page: '#424242', fg: '#ecebe8', muted: '#b0afaa', line: '#4f4f4f', link: '#f08a66', invert: 0.78, ...NOCHE_ACC },
+  dark: { label: 'Noche', bg: '#161616', deep: '#212121', page: '#1b1b1b', fg: '#ecebe8', muted: '#a3a29d', line: '#363636', link: '#f08a66', invert: 0.9, ...NOCHE_ACC },
+  black: { label: 'Negro', bg: '#000000', deep: '#141414', page: '#000000', fg: '#dcdbd7', muted: '#9a9994', line: '#2c2c2c', link: '#f08a66', invert: 1, ...NOCHE_ACC },
 }
 
 export const DEFAULT_THEME = 'cream'

@@ -14,9 +14,9 @@
    cálido (bermellón) y su complemento (cobalto). Cortes rectos, teselas con
    medianil de 8px, una sola sombra (sombra-papel), rótulos en serif itálica minúscula. */
 :root {
-  --papel: #f2ebdc; --papel-hondo: #e6dcc6; --page: #f2ebdc; --tinta: #1c1915; --tinta-suave: #5e564a;
-  --linea: #cfc2a6; --bermellon: #e2562f; --bermellon-hondo: #a5341a; --bermellon-claro: #f6cdb9;
-  --sobre-bermellon: #1c1915; --cobalto: #1f4fa3; --sobre-cobalto: #f2ebdc;
+  --papel: #f3f3f1; --papel-hondo: #e6e6e2; --page: #f6f6f4; --tinta: #1c1b19; --tinta-suave: #5c5b57;
+  --linea: #d2d2cd; --bermellon: #e2562f; --bermellon-hondo: #a5341a; --bermellon-claro: #f6cdb9;
+  --sobre-bermellon: #1c1915; --cobalto: #1f4fa3; --sobre-cobalto: #f4f4f2;
   --cobalto-claro: #c5d4ee; --mostaza: #e3c13b; --oliva: #5f6b3a; --rosa: #efa49b;
   --sombra-papel: 0 1px 0 rgba(28,25,21,0.10), 0 8px 16px -10px rgba(28,25,21,0.35);
   --trama: rgba(28,25,21,0.22);
