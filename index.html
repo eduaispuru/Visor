@@ -24,6 +24,7 @@
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
       <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+      <symbol id="i-restore" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
       <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
       <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
       <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></symbol>
@@ -98,40 +99,15 @@
     </aside>
     <section id="home">
       <div class="home-wrap">
-        <header class="hero">
-          <span class="rotulo" id="today"></span>
-          <h1>Lecturas</h1>
-          <p class="rotulo" id="lib-stats"></p>
-        </header>
-
-        <div class="tiles">
-          <div id="continue" class="seguis" hidden>
-            <span class="rotulo acento">seguís leyendo</span>
-            <div class="seguis-titulo" id="continue-title"></div>
-            <div class="seguis-meta"><span id="continue-kind"></span><span id="continue-pct"></span></div>
-            <div class="barra"><div id="continue-bar"></div></div>
-            <button id="continue-btn" class="btn primary">Continuar<svg class="ic"><use href="#i-arrow"/></svg></button>
-          </div>
-
-          <div id="restore" class="tesela cobalto trama" hidden>
-            <span class="rotulo">la última vez</span>
-            <div class="tesela-titulo" id="restore-count"></div>
-            <div id="restore-names"></div>
-            <button id="restore-btn" class="btn claro">Restaurar pestañas</button>
-          </div>
-
-          <div id="drop" class="tesela cuadricula">
-            <span class="rotulo">soltá un archivo</span>
-            <div class="tesela-titulo">Abrir</div>
-            <small>pdf, epub, mobi, azw3, fb2 o cbz</small>
-          </div>
-        </div>
-
         <div class="seccion-head">
-          <h2 id="recent-title" hidden>Recientes</h2>
+          <h2>Recientes</h2>
+          <button id="restore" class="link" hidden>
+            <svg class="ic"><use href="#i-restore"/></svg>
+            <span>restaurar <span id="restore-count"></span> de la última vez</span>
+          </button>
         </div>
         <div id="recent"></div>
-        <p id="empty" class="rotulo" hidden>Todavía no abriste ningún archivo. Tocá Abrir o soltá uno arriba.</p>
+        <p id="empty" class="rotulo" hidden>Todavía no abriste ningún archivo. Tocá Abrir, o arrastrá uno a esta ventana.</p>
         <p id="app-version" class="rotulo"></p>
       </div>
     </section>

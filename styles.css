@@ -127,35 +127,19 @@ section.doc.inactive { visibility: hidden; pointer-events: none; }
 /* ---------- Inicio ---------- */
 #home { overflow: auto; background: var(--papel); }
 .home-wrap { max-width: 1180px; margin: 0 auto; padding: var(--space-4) var(--space-5) var(--space-5); }
-.hero h1 { font: 400 84px/76px var(--font-display); letter-spacing: -0.02em; margin: 2px 0 var(--space-2); }
-#lib-stats { margin: 0; }
-.tiles { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-2); margin-top: var(--space-4); min-height: 210px; }
-.seguis {
-  background: var(--papel-hondo); box-shadow: var(--sombra-papel); padding: 18px 20px 20px;
-  display: flex; flex-direction: column; gap: 10px;
+.seccion-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin: var(--space-2) 0 var(--space-4); }
+.seccion-head h2 { font: 400 44px/44px var(--font-display); letter-spacing: -0.02em; margin: 0; }
+.link {
+  display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; cursor: pointer;
+  color: var(--bermellon-hondo); font: 500 15px var(--font-sans);
 }
-.seguis-titulo { font: 400 36px/38px var(--font-display); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.seguis-meta { display: flex; justify-content: space-between; font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; margin-top: auto; }
-.barra { height: 6px; background: var(--linea); }
-.barra div { height: 100%; background: var(--bermellon); }
-#continue-btn { justify-content: space-between; height: 44px; font-size: 16px; }
-.tesela { position: relative; overflow: hidden; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
-.tesela-titulo { font: 400 40px/42px var(--font-display); letter-spacing: -0.01em; }
-.tesela.cobalto { background-color: var(--cobalto); color: var(--sobre-cobalto); }
-.tesela.cobalto .rotulo { color: var(--sobre-cobalto); }
-.trama { background-image: radial-gradient(var(--trama) 1.3px, transparent 1.7px); background-size: 6px 6px; }
-#restore-names { font-size: 14px; line-height: 20px; opacity: .9; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-#restore-btn { margin-top: auto; align-self: flex-start; height: 40px; }
-.cuadricula {
-  background-color: var(--papel-hondo);
-  background-image: linear-gradient(var(--linea) 1px, transparent 1px), linear-gradient(90deg, var(--linea) 1px, transparent 1px);
-  background-size: 24px 24px;
+.link .ic { width: 16px; height: 16px; }
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+body.dragover main::after {
+  content: "Soltá para abrir"; position: absolute; inset: 8px; z-index: 50; pointer-events: none;
+  display: grid; place-items: center; font: italic 28px var(--font-display); color: var(--tinta);
+  background: color-mix(in srgb, var(--bermellon-claro) 70%, transparent); outline: 2px dashed var(--bermellon); outline-offset: -2px;
 }
-#drop small { margin-top: auto; font-size: 14px; color: var(--tinta-suave); }
-#drop { cursor: pointer; }
-#drop.over { background: var(--bermellon-claro); outline: 2px solid var(--bermellon); outline-offset: -2px; }
-.seccion-head { display: flex; align-items: baseline; justify-content: space-between; margin: var(--space-5) 0 var(--space-3); }
-.seccion-head h2 { font: 400 30px/32px var(--font-display); margin: 0; }
 #recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-4) var(--space-2); }
 .card { align-self: start; position: relative; display: block; text-align: left; border: 0; padding: 0; background: none; cursor: pointer; color: var(--tinta); }
 .card .cv { aspect-ratio: 200 / 260; overflow: hidden; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
@@ -231,8 +215,6 @@ body[data-mode="noche"] .pdfViewer .page { --page-bg-color: var(--page); }
 }
 
 @media (max-width: 760px) {
+  .seccion-head { flex-direction: column; gap: 4px; }
   .home-wrap { padding: var(--space-3) var(--space-4) var(--space-5); }
-  .hero h1 { font-size: 64px; line-height: 60px; }
-  .tiles { grid-template-columns: 1fr; }
-  #drop { display: none; }
 }

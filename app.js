@@ -334,8 +334,8 @@ function renderRestore() {
   const n = prevSession?.handles?.length || 0
   box.hidden = !n
   if (!n) return
-  $('#restore-count').textContent = n === 1 ? '1 pestaña' : `${n} pestañas`
-  $('#restore-names').textContent = (prevSession.names || []).join(', ')
+  $('#restore-count').textContent = n === 1 ? 'la pestaña' : `las ${n} pestañas`
+  box.title = (prevSession.names || []).join(', ')
 }
 
 async function restoreLast() {
@@ -391,21 +391,17 @@ async function fillMissingThumbs(items, thumbs) {
 
 async function renderRecent() {
   renderRestore()
-  $('#today').textContent = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
   const items = await listRecent()
   const box = $('#recent')
   box.replaceChildren()
-  $('#recent-title').hidden = !items.length
   $('#empty').hidden = !!items.length
   const fmt = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long' })
-  let reading = 0
   for (const u of thumbURLs) URL.revokeObjectURL(u)
   thumbURLs = []
   const thumbs = await Promise.all(items.map(it => getThumb(it.key)))
   const usedInks = []
   items.forEach((it, i) => {
     const prog = getPref('prog:' + it.key, null)
-    if (prog != null && prog > 0.01 && prog < 0.99) reading++
     const ext = (it.name.split('.').pop() || '').toLowerCase()
     const title = stripExt(it.name)
     const ink = titleInk(it.name, usedInks.slice(-2))
@@ -436,22 +432,6 @@ async function renderRecent() {
     box.append(card)
   })
   fillMissingThumbs(items, thumbs)
-  const n = items.length
-  $('#lib-stats').textContent = n
-    ? `${words(n, 'documento', 'documentos')}${reading ? `, ${words(reading, 'a medio leer', 'a medio leer')}` : ''}`
-    : 'tu biblioteca está vacía'
-
-  // "Seguís leyendo": el más reciente que no esté terminado
-  const cont = items.find(it => { const p = getPref('prog:' + it.key, null); return p == null || p < 0.99 })
-  $('#continue').hidden = !cont
-  if (cont) {
-    const p = getPref('prog:' + cont.key, null)
-    $('#continue-title').textContent = stripExt(cont.name)
-    $('#continue-kind').textContent = (cont.name.split('.').pop() || '').toLowerCase() === 'pdf' ? 'documento pdf' : 'libro'
-    $('#continue-pct').textContent = p == null ? '' : pctText(p)
-    $('#continue-bar').style.width = `${Math.round((p || 0) * 100)}%`
-    $('#continue-btn').onclick = () => openFromHandle(cont.handle)
-  }
 }
 
 // ---------- Teclado ----------
@@ -540,14 +520,14 @@ $('#book-flow').onclick = () => {
 }
 
 // Arrastrar y soltar archivos (uno o varios)
-const drop = $('#drop')
+const drop = document.body
 const isFileDrag = e => e.dataTransfer?.types?.includes('Files')
-document.addEventListener('dragover', e => { if (isFileDrag(e)) { e.preventDefault(); drop.classList.add('over') } })
-document.addEventListener('dragleave', e => { if (!e.relatedTarget) drop.classList.remove('over') })
+document.addEventListener('dragover', e => { if (isFileDrag(e)) { e.preventDefault(); drop.classList.add('dragover') } })
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) drop.classList.remove('dragover') })
 document.addEventListener('drop', async e => {
   if (!isFileDrag(e)) return
   e.preventDefault()
-  drop.classList.remove('over')
+  drop.classList.remove('dragover')
   const items = [...e.dataTransfer.items].filter(i => i.kind === 'file')
   // Hay que pedir todos los handles antes del primer await
   const pending = items.map(i => i.getAsFileSystemHandle ? i.getAsFileSystemHandle() : Promise.resolve(null))
@@ -628,8 +608,7 @@ async function restoreSession() {
 
 // ---------- Inicio ----------
 applyTheme(getPref('theme', DEFAULT_THEME))
-$('#restore-btn').onclick = restoreLast
-$('#drop').onclick = pickFiles
+$('#restore').onclick = restoreLast
 activate(null)
 ;(async () => {
   prevSession = await getLastSession()
