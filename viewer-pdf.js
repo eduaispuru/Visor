@@ -61,8 +61,27 @@ export async function openPdf(file, { container, start, onPage, onScale, onFind,
   linkService.setDocument(doc, null)
 
   // Volver a donde se dejó: página, zoom y posición exacta dentro de la página
+  // Zoom "cómodo" (por defecto): la página ocupa ~60% del ancho, con ~20% de margen a cada lado.
+  // En ventanas angostas usa casi todo el ancho.
+  let comodo = false
+  const fitComodo = () => {
+    viewer.currentScaleValue = 'page-width'
+    const f = container.clientWidth < 900 ? 0.92 : 0.6
+    comodo = true
+    viewer.currentScale = viewer.currentScale * f
+    comodo = true
+    onScale?.(viewer.currentScale, 'comodo')
+  }
+  eventBus.on('scalechanging', () => { if (!fixing) comodo = false })
+  let fixing = false
+  const withComodo = fn => { fixing = true; try { fn() } finally { fixing = false } }
+  new ResizeObserver(() => { if (comodo) withComodo(fitComodo) }).observe(container)
+
   eventBus.on('pagesinit', () => {
-    viewer.currentScaleValue = start?.scale || 'page-width'
+    // 'page-width' era el valor por defecto anterior: se reemplaza por el cómodo
+    const s = start?.scale
+    if (s && s !== 'page-width' && s !== 'comodo') viewer.currentScaleValue = s
+    else withComodo(fitComodo)
     const page = start?.page
     if (page && page <= doc.numPages) {
       if (typeof start.top === 'number') {
@@ -102,7 +121,7 @@ export async function openPdf(file, { container, start, onPage, onScale, onFind,
     outline,
     title,
     get page() { return viewer.currentPageNumber },
-    get scaleValue() { return viewer.currentScaleValue },
+    get scaleValue() { return comodo ? 'comodo' : viewer.currentScaleValue },
     get location() { return viewer._location },
     // Miniatura de la primera página (para la biblioteca)
     async thumbnail(width = 300) {
@@ -120,7 +139,7 @@ export async function openPdf(file, { container, start, onPage, onScale, onFind,
     prev() { viewer.previousPage() },
     zoomIn() { viewer.increaseScale({ steps: 1 }) },
     zoomOut() { viewer.decreaseScale({ steps: 1 }) },
-    setScale(v) { viewer.currentScaleValue = v },
+    setScale(v) { if (v === 'comodo') withComodo(fitComodo); else viewer.currentScaleValue = v },
     goToOutline(item) {
       if (item.target) linkService.goToDestination(item.target)
       else if (item.url) window.open(item.url, '_blank', 'noopener')

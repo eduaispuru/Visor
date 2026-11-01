@@ -69,6 +69,9 @@ export async function openBook(file, { host, lastLocation, style, onRelocate, on
   let current = { ...style }
   view.renderer.setStyles?.(getCSS(current))
   view.renderer.setAttribute('flow', current.flow || 'paginated')
+  // Una sola columna centrada, con márgenes a los costados (no a todo el ancho)
+  view.renderer.setAttribute('max-column-count', '1')
+  view.renderer.setAttribute('max-inline-size', '760px')
 
   try {
     await view.init({ lastLocation })
