@@ -75,10 +75,6 @@ button, select, input { font: inherit; color: inherit; }
   content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 9999px;
   background: var(--tc); margin-right: var(--space-2); vertical-align: 0;
 }
-#tab-list .tab:nth-child(4n+1) { --tc: var(--bermellon); }
-#tab-list .tab:nth-child(4n+2) { --tc: var(--cobalto); }
-#tab-list .tab:nth-child(4n+3) { --tc: var(--mostaza); }
-#tab-list .tab:nth-child(4n+4) { --tc: var(--oliva); }
 .tab .close {
   display: inline-flex; align-items: center; justify-content: center; border-radius: 2px;
   border: 0; background: none; color: inherit; opacity: 0; cursor: pointer; width: 22px; height: 22px; flex: none;
@@ -87,7 +83,8 @@ button, select, input { font: inherit; color: inherit; }
 .tab:hover .close, .tab.active .close { opacity: .7; }
 .tab .close:hover { opacity: 1; background: var(--papel-hondo); }
 .tab.home { padding: 0 12px; flex: none; }
-.tab.dragging { opacity: .5; }
+.tab { user-select: none; touch-action: none; }
+.tab.dragging { z-index: 3; cursor: grabbing; background: var(--papel); color: var(--tinta); box-shadow: var(--sombra-papel); }
 #tab-add { flex: none; height: 30px; min-width: 30px; margin-bottom: 2px; color: var(--tinta-suave); }
 #tab-add:hover { background: color-mix(in srgb, var(--papel) 45%, transparent); }
 

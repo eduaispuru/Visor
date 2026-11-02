@@ -71,10 +71,64 @@ function activate(doc) {
   doc.tab.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
 
+const TAB_COLORS = ['var(--bermellon)', 'var(--cobalto)', 'var(--mostaza)', 'var(--oliva)']
+
+function dragTab(e, doc) {
+  const tab = doc.tab
+  const list = $('#tab-list')
+  const tabs = [...list.children]
+  const from = tabs.indexOf(tab)
+  const rects = tabs.map(t => t.getBoundingClientRect())
+  const gap = tabs.length > 1 ? Math.max(0, (rects[1]?.left ?? 0) - (rects[0]?.right ?? 0)) : 0
+  const shiftW = rects[from].width + gap
+  const minDx = rects[0].left - rects[from].left
+  const maxDx = rects[tabs.length - 1].right - rects[from].right
+  const startX = e.clientX
+  let dragging = false, to = from
+  tab.setPointerCapture(e.pointerId)
+
+  const move = ev => {
+    let dx = ev.clientX - startX
+    if (!dragging) {
+      if (Math.abs(dx) < 6) return
+      dragging = true
+      tab.classList.add('dragging')
+      for (const t of tabs) if (t !== tab) t.style.transition = 'transform .15s ease'
+    }
+    dx = Math.max(minDx, Math.min(maxDx, dx))
+    tab.style.transform = `translateX(${dx}px)`
+    const center = rects[from].left + rects[from].width / 2 + dx
+    to = from
+    tabs.forEach((t, i) => {
+      if (t === tab) return
+      const mid = rects[i].left + rects[i].width / 2
+      let shift = 0
+      if (i > from && center > mid) { shift = -shiftW; to = Math.max(to, i) }
+      if (i < from && center < mid) { shift = shiftW; to = Math.min(to, i) }
+      t.style.transform = shift ? `translateX(${shift}px)` : ''
+    })
+  }
+  const end = () => {
+    tab.removeEventListener('pointermove', move)
+    tab.removeEventListener('pointerup', end)
+    tab.removeEventListener('pointercancel', end)
+    for (const t of tabs) { t.style.transform = ''; t.style.transition = '' }
+    tab.classList.remove('dragging')
+    if (dragging && to !== from) {
+      const [moved] = docs.splice(from, 1)
+      docs.splice(to, 0, moved)
+      list.replaceChildren(...docs.map(d => d.tab))
+      persistSession()
+    }
+  }
+  tab.addEventListener('pointermove', move)
+  tab.addEventListener('pointerup', end)
+  tab.addEventListener('pointercancel', end)
+}
+
 function createTab(doc) {
   const tab = document.createElement('div')
   tab.className = 'tab'
-  tab.draggable = true
   tab.title = doc.name
   const name = document.createElement('span')
   name.className = 'name'
@@ -85,25 +139,15 @@ function createTab(doc) {
   close.innerHTML = '<svg class="ic"><use href="#i-x"/></svg>'
   close.onclick = e => { e.stopPropagation(); closeDoc(doc) }
   tab.append(name, close)
-  tab.onclick = () => activate(doc)
   tab.onauxclick = e => { if (e.button === 1) closeDoc(doc) } // clic con la rueda
-  // Reordenar arrastrando
-  tab.ondragstart = e => { e.dataTransfer.setData('text/x-visor-tab', String(doc.id)); tab.classList.add('dragging') }
-  tab.ondragend = () => tab.classList.remove('dragging')
-  tab.ondragover = e => { if (e.dataTransfer.types.includes('text/x-visor-tab')) e.preventDefault() }
-  tab.ondrop = e => {
-    const id = Number(e.dataTransfer.getData('text/x-visor-tab'))
-    if (!id) return
-    e.preventDefault(); e.stopPropagation()
-    const moved = docs.find(d => d.id === id)
-    if (!moved || moved === doc) return
-    const from = docs.indexOf(moved)
-    docs.splice(from, 1)
-    const to = docs.indexOf(doc) + (from <= docs.indexOf(doc) ? 1 : 0)
-    docs.splice(to, 0, moved)
-    $('#tab-list').replaceChildren(...docs.map(d => d.tab))
-    persistSession()
-  }
+  // El color de la pestaña queda fijo aunque se reordene
+  tab.style.setProperty('--tc', TAB_COLORS[(doc.id - 1) % TAB_COLORS.length])
+  // Clic: activa. Arrastrar: se mueve solo en horizontal, corriendo a las demás (como Chrome)
+  tab.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.target.closest('.close')) return
+    activate(doc)
+    dragTab(e, doc)
+  })
   doc.tab = tab
   doc.setName = n => { name.textContent = n; tab.title = n }
   $('#tab-list').append(tab)
